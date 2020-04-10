@@ -10,19 +10,35 @@ def pred(X_train, y_train, x,tau):
     m = np.size(X_train, 0)
     n = np.size(X_train, 1)
     theta = np.zeros((n, 1))
-    x = np.repmat(x, m, 1)
-    print(x)
-    x_medial = (X_train - x).dot(2)
-    w = np.exp(-sum(x_medial, 2) / (2 * tau))  # .^2表示每一项都进行平方，双竖线就表示向量做差之后各项平方和开根号
+    x_medial = []
+    for i in range(m):
+        x_medial.append(x)
+    #每一横排合成(69,2)变成(69,1)
 
-    g = np.ones(n, 1)
-    while (np.norm(g) > 1e-6):
-        h = 1 / (1 + np.exp(-X_train * theta));#sigmoid
-        g = X_train * (w * (y_train - h)) - 1e-4 * theta;
-        H = -X_train * np.diag(w*h*(1-h)) * X_train - 1e-4*np.eye(n);
-        theta = theta - H / g
 
-    y_predicted = np.double(x * theta > 0)
+    x_medial = np.power(X_train - x_medial,2)
+    w = np.exp(-x_medial / (2 * tau))  # .^2表示每一项都进行平方，双竖线就表示向量做差之后各项平方和开根号
+    #x = np.repmat(x, m, 1)#手动完成repmat操作
+
+    g = np.ones([n, 1])
+
+    while (np.linalg.norm(g) > 1e-6):
+        h = 1 / (1 + np.exp(- X_train.dot(theta)))#sigmoid 点乘
+
+        g = X_train.dot((y_train - h[0]).dot(w)) - 1e-4 * theta
+
+        print(np.shape(w))
+        print(np.shape(h))
+
+        print(np.size(w.dot(h).dot(1-h)))
+        H = -np.transpose(X_train).dot(np.diag(w.dot(h).dot(1-h)))
+            #.dot(X_train) - 1e-4*np.eye(n)
+
+
+        print(theta)
+        theta = theta - np.linalg.inv(H).dot(g)
+
+    y_predicted = np.double(x_medial * theta > 0)
     return y_predicted
 
 
