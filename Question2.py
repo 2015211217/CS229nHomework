@@ -10,6 +10,7 @@ def pred(X_train, y_train, x,tau):
     m = np.size(X_train, 0)
     n = np.size(X_train, 1)
     theta = np.zeros((n, 1))
+    w = []
     y_medial = []
     for i in range(m):
         y = []
@@ -31,21 +32,29 @@ def pred(X_train, y_train, x,tau):
 
     x_medial = np.array(x_medial_shuxian)
 
+
     w = np.exp(- x_medial / (2 * tau))  # .^2表示每一项都进行平方，双竖线就表示向量做差之后各项平方和开根号
+
+    print(np.shape(tau))
+    print(np.shape(x_medial))
+
     #x = np.repmat(x, m, 1)#手动完成repmat操作
 
     g = np.ones([n, 1])
 
+    #为什么数值不改变呢
     while (np.linalg.norm(g) > 1e-6):
-        print(np.linalg.norm(g))#不变？？？？？
-
-        print(theta) #就两个值？？？
-
         h = 1 / (1 + np.exp(- X_train.dot(theta)))#sigmoid 点乘
 
-        g = np.transpose(X_train).dot(w * (y_train - h)) - 1e-4 * theta
 
-        H = -(np.transpose(X_train) * np.diag(w * h * (1-h))).dot(X_train) - 1e-4*np.eye(n)
+
+        g = np.transpose(X_train).dot(w * (y_train - h)) - theta.dot(1e-4)
+        medial_whatever = []
+        medial_whatever_2 = w * h * (1-h)
+        for i in range(m):
+            medial_whatever.append(medial_whatever_2[i][0])
+        H = -(np.transpose(X_train).dot(np.diag(medial_whatever)).dot(X_train)) - np.eye(n).dot(1e-4)#eye的意思是生成n行n列的单位矩阵
+
 
         theta = theta - np.linalg.inv(H).dot(g)
 
@@ -67,7 +76,6 @@ for i in range(iter):
         j = result[0]
         i = result[1]
 
-        print(result)
 
     # def loss_plot(self, loss_type):
     #     iters = range(len(self.losses[loss_type]))
