@@ -10,52 +10,50 @@ def pred(X_train, y_train, x,tau):
     m = np.size(X_train, 0)
     n = np.size(X_train, 1)
     theta = np.zeros((n, 1))
+    y_medial = []
+    for i in range(m):
+        y = []
+        y.append(y_train[i])
+        y_medial.append(y)
+    y_train = y_medial
+
+
     x_medial = []
+    x_medial_shuxian = []
     for i in range(m):
         x_medial.append(x)
     #每一横排合成(69,2)变成(69,1)
+    x_medial = X_train - x_medial
+    for i in range(m):
+        x_whatever = []
+        x_whatever.append(np.power(x_medial[i][0],2)+np.power(x_medial[i][1],2))
+        x_medial_shuxian.append(x_whatever)
 
+    x_medial = np.array(x_medial_shuxian)
 
-    x_medial = np.power(X_train - x_medial,2)
-    w = np.exp(-x_medial / (2 * tau))  # .^2表示每一项都进行平方，双竖线就表示向量做差之后各项平方和开根号
+    w = np.exp(- x_medial / (2 * tau))  # .^2表示每一项都进行平方，双竖线就表示向量做差之后各项平方和开根号
     #x = np.repmat(x, m, 1)#手动完成repmat操作
 
     g = np.ones([n, 1])
 
     while (np.linalg.norm(g) > 1e-6):
+        print(np.linalg.norm(g))#不变？？？？？
+
+        print(theta) #就两个值？？？
+
         h = 1 / (1 + np.exp(- X_train.dot(theta)))#sigmoid 点乘
 
-        g = X_train.dot((y_train - h[0]).dot(w)) - 1e-4 * theta
+        g = np.transpose(X_train).dot(w * (y_train - h)) - 1e-4 * theta
 
-        print(np.shape(w))
-        print(np.shape(h))
+        H = -(np.transpose(X_train) * np.diag(w * h * (1-h))).dot(X_train) - 1e-4*np.eye(n)
 
-        print(np.size(w.dot(h).dot(1-h)))
-        H = -np.transpose(X_train).dot(np.diag(w.dot(h).dot(1-h)))
-            #.dot(X_train) - 1e-4*np.eye(n)
-
-
-        print(theta)
         theta = theta - np.linalg.inv(H).dot(g)
 
-    y_predicted = np.double(x_medial * theta > 0)
+
+
+    y_predicted = np.double(np.transpose(x) * theta > 0)
     return y_predicted
 
-
-# % compute weights
-# w = exp(-sum((X_train - repmat(x', m, 1)).^2, 2) / (2*tau));
-#
-# % perform Newton's method
-# g = ones(n,1);
-# while (norm(g) > 1e-6)
-#   h = 1 ./ (1 + exp(-X_train * theta));
-#   g = X_train' * (w.*(y_train - h)) - 1e-4*theta;
-#   H = -X_train' * diag(w.*h.*(1-h)) * X_train - 1e-4*eye(n);
-#   theta = theta - H \ g;
-# end
-#
-# % return predicted y
-# y = double(x'*theta > 0);
 
 iter = 50
 x = [0,0]
@@ -64,9 +62,12 @@ for i in range(iter):
         x[0] = 2*i/(iter-1) - 1
         x[1] = 2*j/(iter-1) - 1
 
+
         result = pred(X_train, y_train, x, tau)
         j = result[0]
         i = result[1]
+
+        print(result)
 
     # def loss_plot(self, loss_type):
     #     iters = range(len(self.losses[loss_type]))
